@@ -46,9 +46,9 @@ if (response_auth.status_code == 200):
                     }
                 
                 
-                #Hacemos un Get Request con el Encabezado, que contiene el token de acceso
-                #y los parametros de busqueda
-                
+                # Hacemos un Get Request con el Encabezado, que contiene el token de acceso
+                # y los parametros de busqueda
+                # devuelve el precio actual y fecha (lo que a mi me importa) entre otras cosas
                 response = requests.get('https://api.invertironline.com/api/v2/{Mercado}/Titulos/{Simbolo}/Cotizacion',                                                
                                         headers=headers,
                                         params=parametros, 
@@ -59,6 +59,7 @@ if (response_auth.status_code == 200):
                         
                         df_response = pd.json_normalize(data=api_response)
                         datosUtiles = df_response[['ultimoPrecio','fechaHora']]
+                        datosUtiles = datosUtiles.append(df_response['montoOperado'])
                         print (datosUtiles)
                 else :
                         print ('Error al obtener contizaciones')
