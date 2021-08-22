@@ -33,7 +33,7 @@ if (response_auth.status_code == 200):
                 # pongo los parametros para pedir precio de un tiulo
                 # /api/v2/{Mercado}/Titulos/{Simbolo}/Cotizacion
                 simbolo = 'AL29D'
-                mercado = 'ARGENTINA'
+                
                 mercado = 'bCBA'
                 plazo ='t2'
                 
