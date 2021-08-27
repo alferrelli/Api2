@@ -7,14 +7,15 @@ Created on Sun Aug  8 19:54:11 2021
 
 import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 
-pd.options.display.float_format = '{:,.2f}'.format
 
 wb = load_workbook('Bonos en pesos.xlsx')
 
 
-ws = wb["Bonos en pesos"]
+#ws = wb["Bonos en pesos"]
+ws = wb.active
 
 ws.insert_rows(2)
 
@@ -32,6 +33,8 @@ df2 = pd.DataFrame(al30, columns=('fechaHora', 'ultimoPrecio'))
 
 
 # Formateo fecha
+
+
 df1['fechaHora'] = pd.to_datetime(
           df1["fechaHora"].to_string(index=False)
           ).strftime("%d/%m/%Y")
@@ -40,7 +43,6 @@ df1['fechaHora'] = pd.to_datetime(
 df2['fechaHora'] = pd.to_datetime(
           df2["fechaHora"].to_string(index=False)
           ).strftime("%d/%m/%Y")
-
 
 # join,dos dataframe por fecha
 
@@ -73,18 +75,17 @@ for celda in filaNueva:
 #df1['Precio'] = df1['Precio'].map('{:,.2f}'.format).str.replace(".", ",") 
 
 
-filaNueva[0].value = df1["fechaHora"].to_string(index = False)
+#filaNueva[0].value = df1["fechaHora"].to_string(index = False)
 
 
 
- # filaNueva[0].value = pd.to_datetime(
- #       df1["Fecha"].to_string(index=False)
- #      ).strftime("%d/%m/%Y")
+
 
 #convierto a string, quito el index y convierto a float
-filaNueva[1].value = float(df1['ultimoPrecio'].to_string(index=False))
+#filaNueva[1].value = float(df1['ultimoPrecio'].to_string(index=False))
 
-
-
+for row in dataframe_to_rows(df3,index=False, header=False): 
+    ws.append(row)
+    print(row)
 
 wb.save('Bonos en pesos.xlsx')

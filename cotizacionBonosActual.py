@@ -87,7 +87,24 @@ if (response_auth.status_code == 200):
             else:
                 print('Error al obtener contizaciones')
          
+            
             print(df_response)
-            datosFinales.to_excel('pruebadataframe.xlsx')
+        
+        wb = load_workbook('Bonos en dolares.xlsx')
+        ws = wb["Paridad usd"]
+        ws.insert_rows(2)
+        
+        filaNueva = ws[2]
+        filaConFormato = ws[3]
+        
+        #formateo las celdas
+        i = 0
+        for celda in filaNueva:
+            celda._style = filaConFormato[i]._style
+            i = i+1 
+        
+        
+        wb.save('Bonos en dolares.xlsx')
+        # datosFinales.to_excel('pruebadataframe.xlsx')
 else:
     print ('Error al logearse')
