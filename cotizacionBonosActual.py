@@ -11,28 +11,20 @@ Created on Thu Jul  8 15:50:13 2021
 
 @author: aferrelli
 """
-import openpyxl
+#import openpyxl
+from openpyxl import load_workbook
 import requests
 import pandas as pd
-
-username = 'kempestw'
-password= 'halcon148'
-grant_type = 'password'
-
-# Datos para pedir el token
-data = {
-  'grant_type': grant_type,
-  'username': username,
-  'password': password
-}
+from openpyxl.formula.translate import Translator
+import funcionesIol as fiol
+from datetime import datetime
 
 
 # de estos tickers voy a pedir la cotizacion
 simbolos = ['AL29D', 'GD29D', 'AL30D', 'GD30D', 'AL35D', 'AE38D','AL41D']
 
-# simbolos = ['AL29D']
+response_auth = fiol.pedir_token()
 
-response_auth = requests.post('https://api.invertironline.com/token', data=data, verify=True)
 
 if (response_auth.status_code == 200):
         json_data = response_auth.json()
@@ -76,23 +68,32 @@ if (response_auth.status_code == 200):
                 df_response = pd.json_normalize(data=api_response)
                 df_response = df_response[['fechaHora', 'ultimoPrecio']]
                 
-                
-                
-                df_response['fechaHora'] = pd.to_datetime(df_response["fechaHora"].to_string(index=False)).strftime("%d/%m/%Y")
+                # Como esta abajo guarda la fecha como string
+                # df_response['fechaHora'] = pd.to_datetime(df_response["fechaHora"].to_string(index=False)).strftime("%d/%m/%Y")
+ 
+                # Asi guarda la fecha como datetime    
+                fecha = pd.to_datetime(df_response["fechaHora"].to_string(index=False)).strftime("%d/%m/%Y")
+                df_response['fechaHora'] = datetime.strptime(fecha , "%d/%m/%Y")
                 
                 datosFinales['fechaHora'] = df_response['fechaHora']
+                # agrego la linea de abajo por un warning de columna 'ultimoPrecio' que se repetia
+                # pandas le iba poniendo 'ultimoPrecio_x' para diferenciarlos
+                datosFinales.rename(columns={"ultimoPrecio":"ultimoPrecio"+simbolo},inplace=True)
                 
                 datosFinales = pd.merge(datosFinales, df_response, on='fechaHora')
-            
+                
+                # agrego una columna de paridad asi me quedan las columnas del df
+                # igual que las columnas de la planilla de excel
+                datosFinales.insert(len(datosFinales.columns) , column="Paridad"+simbolo, value=0)
             else:
-                print('Error al obtener contizaciones')
+                print('Error al obtener contizaciones de: ' + simbolo)
          
             
-            print(df_response)
-        
-        wb = load_workbook('Bonos en dolares.xlsx')
+        wb = load_workbook('Bonos en dolares.xlsm', keep_vba=True)
         ws = wb["Paridad usd"]
-        ws.insert_rows(2)
+        filas = ws.max_row
+        rango = "A2:Y"+str(filas)
+        ws.move_range(rango,rows=1,translate=True)
         
         filaNueva = ws[2]
         filaConFormato = ws[3]
@@ -104,7 +105,24 @@ if (response_auth.status_code == 200):
             i = i+1 
         
         
-        wb.save('Bonos en dolares.xlsx')
-        # datosFinales.to_excel('pruebadataframe.xlsx')
+        # Copio los valores del DF en la nueva celda de Excel
+        c = 0
+        for column in datosFinales:
+            filaNueva[c].value = datosFinales.iloc[0,c]
+            c = c+1
+        
+        # copio las formulas de las columnas con formula a la nueva fila
+        col = ['C','E','G','I','K','M','O','P','Q','R','S','T','U','V','W','X','Y']
+
+        for letra_columna in col:
+            celda_con_formato = letra_columna+'3'
+            celda_nueva = letra_columna+'2'
+            
+            formula = ws[celda_con_formato].value
+            
+            
+            ws[celda_nueva]=Translator(formula, celda_con_formato).translate_formula(celda_nueva)
+        wb.save('Bonos en dolares.xlsm')
+        wb.close()
 else:
-    print ('Error al logearse')
+    print ('Error al logearse en la API de IOL')
