@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Oct 29 08:27:06 2021
+
+@author: aferrelli
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Jul  1 10:55:01 2021
 
 @author: aferrelli
 """
-from datetime import date
+#from datetime import date
 
-def calcularInteresCorrido(fdesde,fhasta,tasa,diasanio):
+def calcularInteresCorrido(fdesde,fhasta,tasa,diasanio,valorresidual):
+    # IC = tasa* (dias transcurridos/ dias año)* Valor residual
     cantidaddias = days360(fdesde, fhasta)
-    ic = tasa * cantidaddias/diasanio
+    ic = (tasa/100) * (cantidaddias/diasanio) * valorresidual
     return ic
 
 
 def calcularParidad(d1,d2,precio,valorresidual,tasa):
-    ic = calcularInteresCorrido(d1, d2, tasa, 360)
+    ic = calcularInteresCorrido(d1, d2, tasa, 360, valorresidual)
     paridad = precio / (valorresidual + ic)
-    return paridad*100
+    return paridad
 
 
 
@@ -38,7 +46,7 @@ def days360(start_date, end_date, method_eu=False):
     end_day = end_date.day
     end_month = end_date.month
     end_year = end_date.year
-    
+   
     if (
             start_day == 31 or
             (
